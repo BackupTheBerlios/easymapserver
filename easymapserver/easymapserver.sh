@@ -1,5 +1,5 @@
 #!/bin/sh
-# $Id: easymapserver.sh,v 1.3 2002/10/31 13:25:23 mose Exp $
+# $Id: easymapserver.sh,v 1.4 2002/10/31 14:00:29 mose Exp $
 # Copyright (C) 2002, Makina Corpus, http://makina-corpus.org
 # This file is a component of Localis <http://localis.org>
 # Created by mose@makina-corpus.org and mastre@makina-corpus.org
@@ -31,7 +31,7 @@ IDEFAULTIP="127.0.0.1"
 IDEFAULTSERVERNAME="mapserver.localhost"
 
 # Location of the sources
-PHPURL="http://www.php.net/get_download.php?df=php-4.2.3.tar.gz"
+PHPURL="http://www.php.net/do_download.php?mr=http%3A%2F%2Ffr.php.net%2F&df=php-4.2.3.tar.gz"
 MAPSERVERURL="http://mapserver.gis.umn.edu/dist/mapserver-3.6.3.tar.gz"
 GDALURL="ftp://ftp.remotesensing.org/pub/gdal/gdal-1.1.7.tar.gz"
 
@@ -172,8 +172,10 @@ install() {
 	echo -n "Do you want to (re)install php ? [Y/n] "
 	ask
 	if [ $act -gt 0 ]; then
-		cd "$EXTDIR/$PHPDIR" || echo "Can't cd to $EXTDIR/$PHPDIR" && exit 1
-		./configure --prefix="$INSTALLDIR/php" --with-config-file-path="$INSTALLDIR/conf" $PHPOPTIONS  && make && make install || exit 0
+		cd "$EXTDIR/$PHPDIR" || exit 1
+		./configure --prefix="$INSTALLDIR/php" --with-config-file-path="$INSTALLDIR/conf" $PHPOPTIONS
+		make
+		make install
 		$MV php "$INSTALLDIR/cgi-bin"
 		$CP php.ini-dist "$INSTALLDIR/conf/php.ini"
 		$MKDIR -p "$INSTALLDIR/lib/php/extensions"
@@ -186,13 +188,13 @@ install() {
 	if [ $act -gt 0 ];then
 	# Ugly patch need to be fixed when mapserver install updated
 		$MKDIR -p /usr/local/include/mapserver-3.5 
-		cd "$EXTDIR/$MAPSERVERDIR" || echo "Can't cd to $EXTDIR/$MAPSERVERDIR" && exit 1
+		cd "$EXTDIR/$MAPSERVERDIR" || exit 1
 		./configure --exec-prefix="$INSTALLDIR/mapserv" --prefix="$INSTALLDIR/mapserv" --with-php=$EXTDIR/$PHPDIR $MAPSERVEROPTIONS
 		cd $EXTDIR/$MAPSERVERDIR/mapscript/php3
 		$CAT Makefile | $REPLACE "cc  cc" cc > Makefile 
 		cd $EXTDIR/$MAPSERVERDIR
 		make
-		make install || exit 0
+		make install
 		$MV mapserv ${INSTALLDIR}/cgi-bin
 		$CP mapscript/php3/php_mapscript.so ${INSTALLDIR}/www/. 
 		cd $HERE/misc
