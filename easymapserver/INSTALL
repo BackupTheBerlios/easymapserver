@@ -1,5 +1,5 @@
 ------------------------------------------------------------------
-$Id: INSTALL,v 1.1 2002/09/30 05:17:42 mose Exp $
+$Id: INSTALL,v 1.2 2002/10/31 13:25:23 mose Exp $
 Copyright (C) 2002 Makina Corpus, http://makina-corpus.org
 Created and maintained by mastre <mastre@makina-corpus.org>
 Released under GPL version 2 or later, see LICENSE file
@@ -10,7 +10,7 @@ EasyMapServer v0.1
 ============
 
 EasyMapServer is an auto-installer for mapserver. It installs major 
-depandancies like php-cgi with specific compilation and gdal. 
+dependancies like php-cgi with specific compilation and gdal. 
 
 First, you need to meet those requirements:
 - mysqld  (mysql-server)

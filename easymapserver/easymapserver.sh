@@ -1,25 +1,38 @@
 #!/bin/sh
-#------------------------------------------------------------------
-# $Id: easymapserver.sh,v 1.2 2002/09/30 06:06:53 mose Exp $
-# Copyright (C) 2002 Makina Corpus, http://makina-corpus.org
-# Created and maintained by mastre <mastre@makina-corpus.org>
-# Released under GPL version 2 or later, see LICENSE file
-# or http://www.gnu.org/copyleft/gpl.html
-#------------------------------------------------------------------
-# version 0.1 - 30 09 02 07:20:43 
-# debugged by mose
+# $Id: easymapserver.sh,v 1.3 2002/10/31 13:25:23 mose Exp $
+# Copyright (C) 2002, Makina Corpus, http://makina-corpus.org
+# This file is a component of Localis <http://localis.org>
+# Created by mose@makina-corpus.org and mastre@makina-corpus.org
+# Maintained by Makina Corpus <localis@makina-corpus.org>
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to 
+# the Free Software Foundation, Inc., 59 Temple Place - Suite 330, 
+# Boston, MA  02111-1307, USA.
+# ------------------------------------------------------------------
+# version 0.2 - 31 10 02 
+# version 0.1 - 30 09 02 
 
 HERE=`pwd`
 EXTDIR="$HERE/src"
-SHELL=/bin/sh
 SUBDIRS="conf php cgi-bin www"
 IDEFAULTDIR="/usr/local/mapserver"
 IDEFAULTIP="127.0.0.1"
 IDEFAULTSERVERNAME="mapserver.localhost"
 
 # Location of the sources
-PHPURL="http://www.php.net/do_download.php?mr=http%3A%2F%2Ffr2.php.net%2F&df=php-4.2.3.tar.gz"
-MAPSERVERURL="http://mapserver.gis.umn.edu/dist/mapserver-3.6.1.tar.gz"
+PHPURL="http://www.php.net/get_download.php?df=php-4.2.3.tar.gz"
+MAPSERVERURL="http://mapserver.gis.umn.edu/dist/mapserver-3.6.3.tar.gz"
 GDALURL="ftp://ftp.remotesensing.org/pub/gdal/gdal-1.1.7.tar.gz"
 
 GDALOPTIONS="--with-ogr"
@@ -45,6 +58,14 @@ MAPSERVEROPTIONS="\
 --with-freetype \
 --with-gd \
 --with-gdal"
+
+SHELL="/bin/sh"
+MV="/bin/mv"
+CP="/bin/cp"
+REPLACE="replace"
+MKDIR="/bin/mkdir"
+CAT="/bin/cat"
+LN="/bin/ln -s"
 
 scangz() {
 	# Set variables GDAL, PHP, MAPSERVER 
@@ -138,8 +159,10 @@ configure() {
 
 install() {
 	configure
-	mkdir -p $INSTALLDIR
-	for dir in $SUBDIRS ; do mkdir -p "$INSTALLDIR/$dir" ; done 
+	$MKDIR -p $INSTALLDIR
+	for dir in $SUBDIRS ; do 
+		$MKDIR -p "$INSTALLDIR/$dir"
+	done 
 	echo -n "Do you want to (re)install gdal ? [Y/n] "
 	ask
 	if [ $act -gt 0 ];then
@@ -148,25 +171,37 @@ install() {
 	fi	
 	echo -n "Do you want to (re)install php ? [Y/n] "
 	ask
-	if [ $act -gt 0 ];then
-		cd "$EXTDIR/$PHPDIR" && ./configure --prefix="$INSTALLDIR/php" --with-config-file-path="$INSTALLDIR/conf" $PHPOPTIONS  && make && make install || exit 0
-		mv php "$INSTALLDIR/cgi-bin" && cp php.ini-dist "$INSTALLDIR/conf/php.ini" && \
-		mkdir -p "$INSTALLDIR/lib/php/extensions" && \
-		if [ ! -h "$INSTALLDIR/lib/php/extensions/no-debug-non-zts-20020429" ];then ln -s /usr/lib/php/extensions/no-debug-non-zts-20020429 "$INSTALLDIR/lib/php/extensions";fi
+	if [ $act -gt 0 ]; then
+		cd "$EXTDIR/$PHPDIR" || echo "Can't cd to $EXTDIR/$PHPDIR" && exit 1
+		./configure --prefix="$INSTALLDIR/php" --with-config-file-path="$INSTALLDIR/conf" $PHPOPTIONS  && make && make install || exit 0
+		$MV php "$INSTALLDIR/cgi-bin"
+		$CP php.ini-dist "$INSTALLDIR/conf/php.ini"
+		$MKDIR -p "$INSTALLDIR/lib/php/extensions"
+		if [ ! -h "$INSTALLDIR/lib/php/extensions/no-debug-non-zts-20020429" ]; then 
+			$LN /usr/lib/php/extensions/no-debug-non-zts-20020429 "$INSTALLDIR/lib/php/extensions"
+		fi
 	fi
 	echo -n "Do you want to (re)install mapserver ? [Y/n] "
 	ask
 	if [ $act -gt 0 ];then
 	# Ugly patch need to be fixed when mapserver install updated
-		mkdir -p /usr/local/include/mapserver-3.5 
-		cd "$EXTDIR/$MAPSERVERDIR" && ./configure --exec-prefix="$INSTALLDIR/mapserv" --prefix="$INSTALLDIR/mapserv" --with-php=$EXTDIR/$PHPDIR $MAPSERVEROPTIONS
-		cd "$EXTDIR/$MAPSERVERDIR/mapscript/php3" && cat Makefile | replace "cc  cc" cc > Makefile 
-		cd "$EXTDIR/$MAPSERVERDIR" && make && make install || exit 0
-		mv mapserv ${INSTALLDIR}/cgi-bin && cp mapscript/php3/php_mapscript.so ${INSTALLDIR}/www/. 
-		cd "$HERE/misc" && cat httpd.conf | replace MAPSERVHOST $MAPSERVHOST INSTALLDIR $INSTALLDIR VIRTUALHOST $VIRTUALHOST> mapserv.conf && mv mapserv.conf "$INSTALLDIR/conf" && \
-		cp phpinfo.php $INSTALLDIR/www && \
-		if [ ! -f ${INSTALLDIR}/www/index.php ];then ln -s ${INSTALLDIR}/www/phpinfo.php ${INSTALLDIR}/www/index.php;fi 
-	gg
+		$MKDIR -p /usr/local/include/mapserver-3.5 
+		cd "$EXTDIR/$MAPSERVERDIR" || echo "Can't cd to $EXTDIR/$MAPSERVERDIR" && exit 1
+		./configure --exec-prefix="$INSTALLDIR/mapserv" --prefix="$INSTALLDIR/mapserv" --with-php=$EXTDIR/$PHPDIR $MAPSERVEROPTIONS
+		cd $EXTDIR/$MAPSERVERDIR/mapscript/php3
+		$CAT Makefile | $REPLACE "cc  cc" cc > Makefile 
+		cd $EXTDIR/$MAPSERVERDIR
+		make
+		make install || exit 0
+		$MV mapserv ${INSTALLDIR}/cgi-bin
+		$CP mapscript/php3/php_mapscript.so ${INSTALLDIR}/www/. 
+		cd $HERE/misc
+		$CAT httpd.conf | $REPLACE MAPSERVHOST $MAPSERVHOST INSTALLDIR $INSTALLDIR VIRTUALHOST $VIRTUALHOST > mapserv.conf
+		$MV mapserv.conf $INSTALLDIR/conf
+		$CP phpinfo.php $INSTALLDIR/www
+		if [ ! -f ${INSTALLDIR}/www/index.php ]; then 
+			$LN ${INSTALLDIR}/www/phpinfo.php ${INSTALLDIR}/www/index.php
+		fi 
 	fi
 }
 
@@ -177,7 +212,10 @@ clean() {
 	fi
 	SOURCESDIR="$GDALDIR $MAPSERVERDIR $PHPDIR"
 	echo "Cleaning source directories"
-	for dir in $SOURCESDIR ; do ( cd "$INSTALLDIR/$dir" ; ${MAKE} clean ) ; done
+	for dir in $SOURCESDIR ; do
+		cd $INSTALLDIR/$dir
+		make clean
+	done
 }
 
 distclean() {
@@ -187,17 +225,23 @@ distclean() {
 	fi
 	SOURCESDIR="$GDALDIR $MAPSERVERDIR $PHPDIR"
 	echo "Removing mapserver from your system"
-	for dir in $SUBDIRS ; do (rm -rf  "$INSTALLDIR/$dir") ; done
-	for dir in $SOURCESDIR ; do ( cd "$INSTALLDIR/$dir" ; ${MAKE} clean ) ; done
+	for dir in $SUBDIRS ; do 
+		rm -rf  $INSTALLDIR/$dir
+	done
+	for dir in $SOURCESDIR ; do
+		cd $INSTALLDIR/$dir
+		make clean
+	done
 }
 
 checkroot
+
 scandir GDAL PHP MAPSERVER 
 if [ ! -n "$PHPDIR" ] || [ ! -n "$GDALDIR" ] || [ ! -n "$MAPSERVERDIR" ] ; then
 	echo "It seems to be the first time you run this installer, or building environnement is altered."
 	echo -n "Do you want to uncompress required archives ? [Y/n] "
 	ask
-	if [ $act -gt 0 ];then
+	if [ $act -gt 0 ]; then
 		scangz GDAL PHP MAPSERVER 
 		echo "Looking for sources"
 		# Check source dir
@@ -210,7 +254,8 @@ if [ ! -n "$PHPDIR" ] || [ ! -n "$GDALDIR" ] || [ ! -n "$MAPSERVERDIR" ] ; then
 				if [ $act -gt 0 ];then
 					eval url=\$`echo ${arch}URL`
 					getsources "$url"
-				else exiterr "Please put gz into src directory, or launch installer again"
+				else 
+					exiterr "Please put gz into src directory, or launch installer again"
 				fi
 			fi
 		done

@@ -1,9 +1,18 @@
 ------------------------------------------------------------------
-$Id: README,v 1.1 2002/09/30 05:17:42 mose Exp $
+$Id: README,v 1.2 2002/10/31 13:25:23 mose Exp $
 Copyright (C) 2002 Makina Corpus, http://makina-corpus.org
 Created and maintained by mastre <mastre@makina-corpus.org>
 Released under GPL version 2 or later, see LICENSE file
 or http://www.gnu.org/copyleft/gpl.html
 ------------------------------------------------------------------
 
-See INSTALL
+EasyMapServer is a shell script that gets sources of PHP4, GDAL 
+and MapServer. Then it compiles it to produce a php executable
+for use with apache configuration in misc/apache.conf.
+Compilation also produces a file named php_mapscript.so
+that will be used by that php application.
+
+Please edit easymapserver.sh and change values if needed 
+and then execute it ! (no mercy)
+
+See INSTALL file for more information
