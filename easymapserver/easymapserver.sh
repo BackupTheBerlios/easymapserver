@@ -1,5 +1,5 @@
 #!/bin/sh
-# $Id: easymapserver.sh,v 1.5 2002/10/31 21:42:56 mose Exp $
+# $Id: easymapserver.sh,v 1.6 2003/05/06 04:49:26 mose Exp $
 # Copyright (C) 2002, Makina Corpus, http://makina-corpus.org
 # This file is a component of Localis <http://localis.org>
 # Created by mose@makina-corpus.org and mastre@makina-corpus.org
@@ -31,20 +31,20 @@ IDEFAULTIP="127.0.0.1"
 IDEFAULTSERVERNAME="mapserver.localhost"
 
 # Location of the sources
-PHPURL="http://www.php.net/do_download.php?mr=http%3A%2F%2Ffr.php.net%2F&df=php-4.2.3.tar.gz"
-MAPSERVERURL="http://mapserver.gis.umn.edu/dist/mapserver-3.6.3.tar.gz"
-GDALURL="ftp://ftp.remotesensing.org/pub/gdal/gdal-1.1.7.tar.gz"
+PHPURL="http://downloads.php.net/jani/php-4.3.2RC2.tar.gz"
+MAPSERVERURL="http://mapserver.gis.umn.edu/dist/mapserver-3.6.5.tar.gz"
+GDALURL="ftp://ftp.remotesensing.org/pub/gdal/gdal-1.1.8.tar.gz"
 
 GDALOPTIONS="--with-ogr"
 
 PHPOPTIONS="\
 --enable-track-vars \
---with-system-regex \
 --enable-trans-sid \
+--with-regex=system \
 --with-gd=shared \
 --with-png-dir=shared \
 --with-zlib \
---without-ttf \
+--with-ttf \
 --with-dbase \
 --with-mysql"
 
@@ -180,7 +180,7 @@ install() {
 		./configure --prefix="$INSTALLDIR/php" --with-config-file-path="$INSTALLDIR/conf" $PHPOPTIONS
 		make
 		make install
-		$MV php "$INSTALLDIR/cgi-bin"
+		$MV sapi/cgi/php "$INSTALLDIR/cgi-bin"
 		$CP php.ini-dist "$INSTALLDIR/conf/php.ini"
 		$MKDIR -p "$INSTALLDIR/lib/php/extensions"
 		if [ ! -h "$INSTALLDIR/lib/php/extensions/no-debug-non-zts-20020429" ]; then 
