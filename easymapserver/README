@@ -1,6 +1,9 @@
-$Id: README,v 1.4 2002/10/31 21:53:06 mose Exp $
+------------------------------------------------------------------
+$Id: README,v 1.5 2004/07/13 09:15:32 mose Exp $
+Copyright (C) 2003-2004 mose, http://mose.fr
 Copyright (C) 2002 Makina Corpus, http://makina-corpus.org
-Created and maintained by mastre <mastre@makina-corpus.org>
+Maintained by mose <mose@mose.fr>
+Created by mastre <mastre@beve.org>
 Released under GPL version 2 or later, see LICENSE file
 or http://www.gnu.org/copyleft/gpl.html
 ------------------------------------------------------------------
@@ -19,8 +22,11 @@ Written in plain shell, its main actions are :
 Pre-requisite
 ==============
 
-- Linux computer (but works on windows too)
-
+- that script is written for a Linux computer (debian, mainly)
+		
+- For windows install, refer to manual installation (in french)
+  http://sig.cwriter.org/index.php/localis/INSTALL/3.windows
+				
 - a MySQL server (mysqld from mysql-server)
 
 - libpng2 (debian package has same name)
@@ -35,13 +41,13 @@ Pre-requisite
 Content of EasyMapServer install
 =================================
 
-- PHP v4.2.3
+- PHP v4.3.7
 	from http://fr.php.net
 
-- MAPSERVER v3.6.3
+- MAPSERVER v4.2.1
   from http://mapserver.gis.umn.edu
 	
-- GDAL v1.1.7
+- GDAL v1.2.1
   from http://remotesensing.org
 
 

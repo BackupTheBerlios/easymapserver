@@ -1,9 +1,9 @@
 #!/bin/sh
-# $Id: easymapserver.sh,v 1.8 2003/06/12 12:58:21 terraces Exp $
-# Copyright (C) 2002, Makina Corpus, http://makina-corpus.org
-# This file is a component of Localis <http://localis.org>
-# Created by mose@makina-corpus.org and mastre@makina-corpus.org
-# Maintained by Makina Corpus <localis@makina-corpus.org>
+# $Id: easymapserver.sh,v 1.9 2004/07/13 09:15:32 mose Exp $
+# Copyright (C) 2003-2004 mose, http://mose.fr
+# Copyright (C) 2002 Makina Corpus, http://makina-corpus.org
+# Maintained by mose <mose@mose.fr>
+# Created by mastre <mastre@beve.org>
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -20,6 +20,9 @@
 # the Free Software Foundation, Inc., 59 Temple Place - Suite 330, 
 # Boston, MA  02111-1307, USA.
 # ------------------------------------------------------------------
+# version 0.5 - 
+# version 0.4 - 19 09 03
+# version 0.3 - 17 06 03
 # version 0.2 - 31 10 02 
 # version 0.1 - 30 09 02 
 
@@ -31,9 +34,9 @@ IDEFAULTIP="127.0.0.1"
 IDEFAULTSERVERNAME="mapserver.localhost"
 
 # Location of the sources
-PHPURL="http://fr.php.net/get/php-4.3.2.tar.gz/from/this/mirror"
-MAPSERVERURL="http://mapserver.gis.umn.edu/dist/mapserver-3.6.5.tar.gz"
-GDALURL="ftp://ftp.remotesensing.org/pub/gdal/gdal-1.1.8.tar.gz"
+PHPURL="http://fr3.php.net/get/php-4.3.7.tar.gz/from/fr.php.net/mirror"
+MAPSERVERURL="http://cvs.gis.umn.edu/dist/mapserver-4.2.1.tar.gz"
+GDALURL="ftp://ftp.remotesensing.org/pub/gdal/gdal-1.2.1.tar.gz"
 
 GDALOPTIONS="--with-ogr"
 
@@ -77,6 +80,9 @@ scangz() {
 
 scandir() {
 # Set variables GDALDIR, PHPDIR, MAPSERVERDIR 
+	if [ ! -d $EXTDIR ]; then
+		mkdir $EXTDIR
+	fi			
 	for dir in $@; do
 		TMP=`ls -1F $EXTDIR | grep -i "$dir.*/" | cut -d"/" -f1`
 		eval `echo ${dir}DIR`=$TMP
@@ -85,21 +91,28 @@ scandir() {
 
 exiterr() {
 # Show a message and exit
-	echo $1 
-	exit 0
+	echo "ERROR: $1" 
+	exit 1
 }
 
 uncompress() {
 # Uncompress file
+	echo -n "Uncompressing files... "
 	for gz in $@; do
-		cd $EXTDIR && tar xvzf $gz 
+		cd $EXTDIR && tar xzf $gz 
 	done
+	echo "Done."
 }
 
 getsources() {
 # Get sources from url
-	cd $EXTDIR && wget $1
-	echo "Download complete"
+	if cd $EXTDIR; then
+		if wget $1; then
+			echo "Download complete"
+		else
+			exiterr "Could not download $1, please check the URL"
+		fi
+	fi
 }
 
 checkroot() {
@@ -113,7 +126,7 @@ checkroot() {
 ask() {
 # Yes/No system
 	read answer 
-	if [ ! -n "$answer" ]; then
+	if [ -z "$answer" ]; then
 		answer=y
 	fi
 	if [ "$answer" = "y" ] || [ "$answer" = "Y" ] ; then
@@ -139,22 +152,33 @@ gg() {
 configure() {
 	echo -n "Where do you want Mapserver to be installed ? [$IDEFAULTDIR] "
 	read installdir 
-	if [ ! -n "$installdir" ]; then
+	if [ -z "$installdir" ]; then
 		installdir=$IDEFAULTDIR
 	fi
 	INSTALLDIR=$installdir
 	echo -n "Define virtualhost ip : [$IDEFAULTIP] "
 	read ip
-	if [ ! -n "$ip" ]; then
+	if [ -z "$ip" ]; then
 		ip=$IDEFAULTIP
 	fi
 	VIRTUALHOST=$ip
 	echo -n "Define virtualhost Server Name : [$IDEFAULTSERVERNAME] "
 	read virtualhost
-	if [ ! -n "$virtualhost" ]; then
+	if [ -z "$virtualhost" ]; then
 		virtualhost=$IDEFAULTSERVERNAME
 	fi
 	MAPSERVHOST=$virtualhost
+	for DEFAULTLOGDIR in /var/log/apache /var/log/httpd; do
+		if [ -d $DEFAULTLOGDIR ]; then
+			break
+		fi
+	done
+	echo -n "In which directory do you want apache logs ? [$DEFAULTLOGDIR] "
+	read logdir
+	if [ -z "$logdir" ]; then
+		logdir=$DEFAULTLOGDIR
+	fi
+	LOGDIR=$logdir
 }
 
 install() {
@@ -247,7 +271,7 @@ distclean() {
 checkroot
 
 scandir GDAL PHP MAPSERVER 
-if [ ! -n "$PHPDIR" ] || [ ! -n "$GDALDIR" ] || [ ! -n "$MAPSERVERDIR" ] ; then
+if [ -z "$PHPDIR" ] || [ -z "$GDALDIR" ] || [ -z "$MAPSERVERDIR" ] ; then
 	echo "It seems to be the first time you run this installer, or building environnement is altered."
 	echo -n "Do you want to uncompress required archives ? [Y/n] "
 	ask
@@ -258,15 +282,15 @@ if [ ! -n "$PHPDIR" ] || [ ! -n "$GDALDIR" ] || [ ! -n "$MAPSERVERDIR" ] ; then
 		for arch in GDAL PHP MAPSERVER; do
 			eval tmpgz=\${$arch}
 			# If no source found, ask to download it
-			if [ ! -n "$tmpgz" ]; then 
+			if [ -z "$tmpgz" ]; then 
 				echo -n "$arch sources not found, download it ?  (wget needed) [Y/n] "
 				ask
 				if [ $act -gt 0 ];then
 					eval url=\$`echo ${arch}URL`				
 					echo -n "Location of $arch sources [$url]"
 					read sourcepath
-					if [ ! -n "$sourcepath" ]; then
-						eval sourcepath="$url"
+					if [ -z "$sourcepath" ]; then
+						sourcepath="$url"
 					fi
 					getsources "$sourcepath"
 				else 
@@ -275,7 +299,7 @@ if [ ! -n "$PHPDIR" ] || [ ! -n "$GDALDIR" ] || [ ! -n "$MAPSERVERDIR" ] ; then
 			fi
 		done
 		# At this step, Gz must be in src dir, proceed to unpack
-		if [ ! -n "$PHP" ] || [ ! -n "$GDAL" ] || [ ! -n "$MAPSERVER" ] ; then
+		if [ -z "$PHP" ] || [ -z "$GDAL" ] || [ -z "$MAPSERVER" ] ; then
 			scangz GDAL PHP MAPSERVER 
 		fi	
 		uncompress $GDAL $PHP $MAPSERVER
@@ -283,7 +307,7 @@ if [ ! -n "$PHPDIR" ] || [ ! -n "$GDALDIR" ] || [ ! -n "$MAPSERVERDIR" ] ; then
 		exiterr "Installation aborted. You may run installation script again."
 	fi
 fi
-if [ ! -n "$PHPDIR" ] || [ ! -n "$GDALDIR" ] || [ ! -n "$MAPSERVERDIR" ] ; then
+if [ -z "$PHPDIR" ] || [ -z "$GDALDIR" ] || [ -z "$MAPSERVERDIR" ] ; then
 	scandir GDAL PHP MAPSERVER 
 fi
 
