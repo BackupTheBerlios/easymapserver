@@ -1,0 +1,35 @@
+------------------------------------------------------------------
+$Id: INSTALL,v 1.1 2002/09/30 05:17:42 mose Exp $
+Copyright (C) 2002 Makina Corpus, http://makina-corpus.org
+Created and maintained by mastre <mastre@makina-corpus.org>
+Released under GPL version 2 or later, see LICENSE file
+or http://www.gnu.org/copyleft/gpl.html
+------------------------------------------------------------------
+
+EasyMapServer v0.1
+============
+
+EasyMapServer is an auto-installer for mapserver. It installs major 
+depandancies like php-cgi with specific compilation and gdal. 
+
+First, you need to meet those requirements:
+- mysqld  (mysql-server)
+- libpng2 (debian package has same name)
+- GD library 1.2 (libgd1 libgd-dev)
+- Jpeg library _optional_ (libjpeg62-dev)
+- Freetype library 2 (libfreetype6-dev)
+
+
+Installation
+============
+
+** YOU MUST BE ROOT TO PERFORM THIS INSTALLATION **
+
+./easymapserver.sh
+
+You need to activate mod_action in apache. 
+Uncomment this line into your apache configuration file (httpd.conf):
+#LoadModule action_module /usr/lib/apache/1.3/mod_actions.so
+
+Add this line into your http.conf:
+Include your_install_dir/conf/mapserv.conf
