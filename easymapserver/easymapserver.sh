@@ -1,5 +1,5 @@
 #!/bin/sh
-# $Id: easymapserver.sh,v 1.6 2003/05/06 04:49:26 mose Exp $
+# $Id: easymapserver.sh,v 1.7 2003/06/12 12:21:24 terraces Exp $
 # Copyright (C) 2002, Makina Corpus, http://makina-corpus.org
 # This file is a component of Localis <http://localis.org>
 # Created by mose@makina-corpus.org and mastre@makina-corpus.org
@@ -31,7 +31,7 @@ IDEFAULTIP="127.0.0.1"
 IDEFAULTSERVERNAME="mapserver.localhost"
 
 # Location of the sources
-PHPURL="http://downloads.php.net/jani/php-4.3.2RC2.tar.gz"
+PHPURL="http://fr.php.net/get/php-4.3.2.tar.gz/from/this/mirror"
 MAPSERVERURL="http://mapserver.gis.umn.edu/dist/mapserver-3.6.5.tar.gz"
 GDALURL="ftp://ftp.remotesensing.org/pub/gdal/gdal-1.1.8.tar.gz"
 
@@ -261,8 +261,13 @@ if [ ! -n "$PHPDIR" ] || [ ! -n "$GDALDIR" ] || [ ! -n "$MAPSERVERDIR" ] ; then
 				echo -n "$arch sources not found, download it ?  (wget needed) [Y/n] "
 				ask
 				if [ $act -gt 0 ];then
-					eval url=\$`echo ${arch}URL`
-					getsources "$url"
+					eval url=\$`echo ${arch}URL`				
+					echo -n "Location of $arch sources [$url]"
+					read sourcepath
+					if [ ! -n "$sourcepath" ]; then
+						eval sourcepath="$url"
+					fi
+					getsources "$sourcepath"
 				else 
 					exiterr "Please put gz into src directory, or launch installer again."
 				fi
