@@ -1,8 +1,8 @@
 ------------------------------------------------------------------
-$Id: README,v 1.5 2004/07/13 09:15:32 mose Exp $
+$Id: README,v 1.6 2004/07/30 13:53:43 mose Exp $
 Copyright (C) 2003-2004 mose, http://mose.fr
 Copyright (C) 2002 Makina Corpus, http://makina-corpus.org
-Maintained by mose <mose@mose.fr>
+Maintained by mose <mose@mose.fr> since v0.3
 Created by mastre <mastre@beve.org>
 Released under GPL version 2 or later, see LICENSE file
 or http://www.gnu.org/copyleft/gpl.html
@@ -18,17 +18,18 @@ Written in plain shell, its main actions are :
 - use wget to download the sources in src/directory
 - compile gdal, php4 and mapserver with correct options
 
+Actually the real pure knowledge is on
+http://mapserver.gis.umn.edu/cgi-bin/wiki.pl?PHPMapScript
+and this script should only be useful is some specific 
+environment, especially GNU/Linux with debian sid, when you 
+repeatedly install mapservers everywhere (which is good!).
+
 
 Pre-requisite
 ==============
 
 - that script is written for a Linux computer (debian, mainly)
 		
-- For windows install, refer to manual installation (in french)
-  http://sig.cwriter.org/index.php/localis/INSTALL/3.windows
-				
-- a MySQL server (mysqld from mysql-server)
-
 - libpng2 (debian package has same name)
 
 - GD library 1.2 (libgd1 libgd-dev)
@@ -37,6 +38,10 @@ Pre-requisite
 
 - Freetype library 2 (libfreetype6-dev)
 
+- libcurl is used by WMS client
+
+- proj4 is very useful when working in maps and projections
+	
 
 Content of EasyMapServer install
 =================================
@@ -56,11 +61,18 @@ Executing EasyMapServer : installation process
 
 ** YOU MUST BE ROOT TO PERFORM THIS INSTALLATION **
 
-Please edit easymapserver.sh and change values if needed
-and then execute it ! (no mercy)
+To make it short, the shell script easymapserver.sh will wget 
+sources, will configure and make all the sources with a sample 
+set of compilation options that you should tune up to your taste.
+
+You should also change the urls for wget, as they are optimized 
+for french users.
+
+When tuned (or not) you can just launch the script
 
     ./easymapserver.sh
 
+(Usually there are some libs lacking, you may want to use auto-apt)
 
 You need to activate mod_action in apache. 
 Uncomment this line into your apache configuration file (httpd.conf):

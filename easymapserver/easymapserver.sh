@@ -1,8 +1,8 @@
 #!/bin/sh
-# $Id: easymapserver.sh,v 1.9 2004/07/13 09:15:32 mose Exp $
+# $Id: easymapserver.sh,v 1.10 2004/07/30 13:53:43 mose Exp $
 # Copyright (C) 2003-2004 mose, http://mose.fr
 # Copyright (C) 2002 Makina Corpus, http://makina-corpus.org
-# Maintained by mose <mose@mose.fr>
+# Maintained by mose <mose@mose.fr> since v0.3
 # Created by mastre <mastre@beve.org>
 #
 # This program is free software; you can redistribute it and/or modify
@@ -20,7 +20,7 @@
 # the Free Software Foundation, Inc., 59 Temple Place - Suite 330, 
 # Boston, MA  02111-1307, USA.
 # ------------------------------------------------------------------
-# version 0.5 - 
+# version 0.5 - 30 07 04
 # version 0.4 - 19 09 03
 # version 0.3 - 17 06 03
 # version 0.2 - 31 10 02 
@@ -38,7 +38,12 @@ PHPURL="http://fr3.php.net/get/php-4.3.7.tar.gz/from/fr.php.net/mirror"
 MAPSERVERURL="http://cvs.gis.umn.edu/dist/mapserver-4.2.1.tar.gz"
 GDALURL="ftp://ftp.remotesensing.org/pub/gdal/gdal-1.2.1.tar.gz"
 
-GDALOPTIONS="--with-ogr"
+GDALOPTIONS="\
+--with-jpeg=internal \
+--with-geotiff=internal \
+--with-libtiff=internal \
+--with-gif=internal \
+--with-ogr"
 
 PHPOPTIONS="\
 --enable-track-vars \
@@ -48,16 +53,24 @@ PHPOPTIONS="\
 --with-png-dir=shared \
 --with-zlib \
 --with-ttf \
+--with-curl \
+--with-iconv \
+--with-mhash \
 --with-dbase \
 --with-mysql"
 
 MAPSERVEROPTIONS="\
 --with-jpeg \
+--with-pdf \
 --with-ogr \
 --with-eppl \
 --with-tiff \
 --with-png \
 --with-zlib \
+--with-proj \
+--with-wms \
+--with-wmsclient \
+--with-wfsclient \
 --with-freetype \
 --with-gd \
 --with-gdal"
@@ -206,6 +219,7 @@ install() {
 		make install
 		$MV sapi/cgi/php "$INSTALLDIR/cgi-bin"
 		$CP php.ini-dist "$INSTALLDIR/conf/php.ini"
+		echo "extension=php_mapscript.so" >> "$INSTALLDIR/conf/php.ini"
 		$MKDIR -p "$INSTALLDIR/lib/php/extensions"
 		if [ ! -h "$INSTALLDIR/lib/php/extensions/no-debug-non-zts-20020429" ]; then 
 			$LN /usr/lib/php/extensions/no-debug-non-zts-20020429 "$INSTALLDIR/lib/php/extensions"
