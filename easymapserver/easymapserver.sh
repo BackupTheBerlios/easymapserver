@@ -1,26 +1,55 @@
 #!/bin/sh
 #------------------------------------------------------------------
-# $Id: easymapserver.sh,v 1.1 2002/09/30 05:17:42 mose Exp $
+# $Id: easymapserver.sh,v 1.2 2002/09/30 06:06:53 mose Exp $
 # Copyright (C) 2002 Makina Corpus, http://makina-corpus.org
 # Created and maintained by mastre <mastre@makina-corpus.org>
 # Released under GPL version 2 or later, see LICENSE file
 # or http://www.gnu.org/copyleft/gpl.html
 #------------------------------------------------------------------
+# version 0.1 - 30 09 02 07:20:43 
+# debugged by mose
 
 HERE=`pwd`
 EXTDIR="$HERE/src"
 SHELL=/bin/sh
 SUBDIRS="conf php cgi-bin www"
+IDEFAULTDIR="/usr/local/mapserver"
+IDEFAULTIP="127.0.0.1"
+IDEFAULTSERVERNAME="mapserver.localhost"
 
 # Location of the sources
 PHPURL="http://www.php.net/do_download.php?mr=http%3A%2F%2Ffr2.php.net%2F&df=php-4.2.3.tar.gz"
 MAPSERVERURL="http://mapserver.gis.umn.edu/dist/mapserver-3.6.1.tar.gz"
 GDALURL="ftp://ftp.remotesensing.org/pub/gdal/gdal-1.1.7.tar.gz"
 
+GDALOPTIONS="--with-ogr"
+
+PHPOPTIONS="\
+--enable-track-vars \
+--with-system-regex \
+--enable-trans-sid \
+--with-gd=shared \
+--with-png-dir=shared \
+--with-zlib \
+--without-ttf \
+--with-dbase \
+--with-mysql"
+
+MAPSERVEROPTIONS="\
+--with-jpeg \
+--with-ogr \
+--with-eppl \
+--with-tiff \
+--with-png \
+--with-zlib \
+--with-freetype \
+--with-gd \
+--with-gdal"
+
 scangz() {
 	# Set variables GDAL, PHP, MAPSERVER 
 	for dir in $@; do
-  	TMP=`cd $EXTDIR && ls -a | grep -i $dir | grep tar`
+  	TMP=`ls -1 $EXTDIR | grep -i "$dir.*\.tar\.gz"`
 		eval `echo $dir`=$TMP
 	done
 }
@@ -28,7 +57,7 @@ scangz() {
 scandir() {
 # Set variables GDALDIR, PHPDIR, MAPSERVERDIR 
 	for dir in $@; do
-  	TMP=`cd $EXTDIR && ls -l | grep ^d | awk '{print $8}' | grep -i $dir`
+		TMP=`ls -1F $EXTDIR | grep -i "$dir.*/" | cut -d"/" -f1`
 		eval `echo ${dir}DIR`=$TMP
 	done
 }
@@ -87,22 +116,22 @@ gg() {
 }
 
 configure() {
-	echo -n "Where do you want Mapserver to be installed ? [/var/www/mapserver] "
+	echo -n "Where do you want Mapserver to be installed ? [$IDEFAULTDIR] "
 	read installdir 
 	if [ ! -n "$installdir" ]; then
-		installdir="/var/www/mapserver"
+		installdir=$IDEFAULTDIR
 	fi
 	INSTALLDIR=$installdir
-	echo -n "Define virtualhost ip [127.0.0.1] "
+	echo -n "Define virtualhost ip : [$IDEFAULTIP] "
 	read ip
 	if [ ! -n "$ip" ]; then
-		ip="127.0.0.1"
+		ip=$IDEFAULTIP
 	fi
 	VIRTUALHOST=$ip
-	echo -n "Define virtualhost url [mapserver.localhost] "
+	echo -n "Define virtualhost Server Name : [$IDEFAULTSERVERNAME] "
 	read virtualhost
 	if [ ! -n "$virtualhost" ]; then
-		virtualhost="mapserver.localhost"
+		virtualhost=$IDEFAULTSERVERNAME
 	fi
 	MAPSERVHOST=$virtualhost
 }
@@ -114,12 +143,13 @@ install() {
 	echo -n "Do you want to (re)install gdal ? [Y/n] "
 	ask
 	if [ $act -gt 0 ];then
-		cd "$EXTDIR/$GDALDIR" ; ./configure --with-ogr && make && make install || exit 0 
+		echo ":::::: $EXTDIR/$GDALDIR"
+		cd "$EXTDIR/$GDALDIR" && ./configure $GDALOPTIONS && make && make install || exit 0 
 	fi	
 	echo -n "Do you want to (re)install php ? [Y/n] "
 	ask
 	if [ $act -gt 0 ];then
-		cd "$EXTDIR/$PHPDIR" && ./configure --prefix="$INSTALLDIR/php" --with-config-file-path="$INSTALLDIR/conf" --enable-track-vars --with-system-regex --enable-trans-sid --with-gd=shared --with-png-dir=shared --with-zlib --without-ttf --with-dbase --with-mysql  && make && make install || exit 0
+		cd "$EXTDIR/$PHPDIR" && ./configure --prefix="$INSTALLDIR/php" --with-config-file-path="$INSTALLDIR/conf" $PHPOPTIONS  && make && make install || exit 0
 		mv php "$INSTALLDIR/cgi-bin" && cp php.ini-dist "$INSTALLDIR/conf/php.ini" && \
 		mkdir -p "$INSTALLDIR/lib/php/extensions" && \
 		if [ ! -h "$INSTALLDIR/lib/php/extensions/no-debug-non-zts-20020429" ];then ln -s /usr/lib/php/extensions/no-debug-non-zts-20020429 "$INSTALLDIR/lib/php/extensions";fi
@@ -129,7 +159,7 @@ install() {
 	if [ $act -gt 0 ];then
 	# Ugly patch need to be fixed when mapserver install updated
 		mkdir -p /usr/local/include/mapserver-3.5 
-		cd "$EXTDIR/$MAPSERVERDIR" && ./configure --exec-prefix="$INSTALLDIR/mapserv" --prefix="$INSTALLDIR/mapserv" --with-php=$EXTDIR/$PHPDIR --with-jpeg --with-ogr --with-eppl --with-tiff --with-png --with-zlib --with-freetype --with-gd --with-gdal 
+		cd "$EXTDIR/$MAPSERVERDIR" && ./configure --exec-prefix="$INSTALLDIR/mapserv" --prefix="$INSTALLDIR/mapserv" --with-php=$EXTDIR/$PHPDIR $MAPSERVEROPTIONS
 		cd "$EXTDIR/$MAPSERVERDIR/mapscript/php3" && cat Makefile | replace "cc  cc" cc > Makefile 
 		cd "$EXTDIR/$MAPSERVERDIR" && make && make install || exit 0
 		mv mapserv ${INSTALLDIR}/cgi-bin && cp mapscript/php3/php_mapscript.so ${INSTALLDIR}/www/. 
@@ -196,7 +226,9 @@ fi
 if [ ! -n "$PHPDIR" ] || [ ! -n "$GDALDIR" ] || [ ! -n "$MAPSERVERDIR" ] ; then
 	scandir GDAL PHP MAPSERVER 
 fi
+
 SOURCESDIR="$GDALDIR $MAPSERVERDIR $PHPDIR"
+
 install
 
 exit 0
