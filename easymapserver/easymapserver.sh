@@ -1,5 +1,5 @@
 #!/bin/sh
-# $Id: easymapserver.sh,v 1.4 2002/10/31 14:00:29 mose Exp $
+# $Id: easymapserver.sh,v 1.5 2002/10/31 21:42:56 mose Exp $
 # Copyright (C) 2002, Makina Corpus, http://makina-corpus.org
 # This file is a component of Localis <http://localis.org>
 # Created by mose@makina-corpus.org and mastre@makina-corpus.org
@@ -60,12 +60,12 @@ MAPSERVEROPTIONS="\
 --with-gdal"
 
 SHELL="/bin/sh"
-MV="/bin/mv"
-CP="/bin/cp"
-REPLACE="replace"
 MKDIR="/bin/mkdir"
+SED="/bin/sed"
 CAT="/bin/cat"
 LN="/bin/ln -s"
+MV="/bin/mv"
+CP="/bin/cp"
 
 scangz() {
 	# Set variables GDAL, PHP, MAPSERVER 
@@ -167,7 +167,11 @@ install() {
 	ask
 	if [ $act -gt 0 ];then
 		echo ":::::: $EXTDIR/$GDALDIR"
-		cd "$EXTDIR/$GDALDIR" && ./configure $GDALOPTIONS && make && make install || exit 0 
+		cd "$EXTDIR/$GDALDIR"
+		./configure $GDALOPTIONS
+		make
+		make install
+		echo "... gdal installed."
 	fi	
 	echo -n "Do you want to (re)install php ? [Y/n] "
 	ask
@@ -182,6 +186,7 @@ install() {
 		if [ ! -h "$INSTALLDIR/lib/php/extensions/no-debug-non-zts-20020429" ]; then 
 			$LN /usr/lib/php/extensions/no-debug-non-zts-20020429 "$INSTALLDIR/lib/php/extensions"
 		fi
+		echo "... PHP4 installed."
 	fi
 	echo -n "Do you want to (re)install mapserver ? [Y/n] "
 	ask
@@ -190,20 +195,22 @@ install() {
 		$MKDIR -p /usr/local/include/mapserver-3.5 
 		cd "$EXTDIR/$MAPSERVERDIR" || exit 1
 		./configure --exec-prefix="$INSTALLDIR/mapserv" --prefix="$INSTALLDIR/mapserv" --with-php=$EXTDIR/$PHPDIR $MAPSERVEROPTIONS
-		cd $EXTDIR/$MAPSERVERDIR/mapscript/php3
-		$CAT Makefile | $REPLACE "cc  cc" cc > Makefile 
-		cd $EXTDIR/$MAPSERVERDIR
+		# seems it's corrected in mapserver version 4.6.3
+		# cd $EXTDIR/$MAPSERVERDIR/mapscript/php3
+		# $CAT Makefile | $SED -e "s/cc  cc/cc/" > Makefile 
+		# cd $EXTDIR/$MAPSERVERDIR
 		make
 		make install
 		$MV mapserv ${INSTALLDIR}/cgi-bin
 		$CP mapscript/php3/php_mapscript.so ${INSTALLDIR}/www/. 
 		cd $HERE/misc
-		$CAT httpd.conf | $REPLACE MAPSERVHOST $MAPSERVHOST INSTALLDIR $INSTALLDIR VIRTUALHOST $VIRTUALHOST > mapserv.conf
+		$CAT httpd.conf | $SED -e "s|MAPSERVHOST|$MAPSERVHOST|" -e "s|INSTALLDIR|$INSTALLDIR|" -e "s|VIRTUALHOST|$VIRTUALHOST|" > mapserv.conf
 		$MV mapserv.conf $INSTALLDIR/conf
 		$CP phpinfo.php $INSTALLDIR/www
 		if [ ! -f ${INSTALLDIR}/www/index.php ]; then 
 			$LN ${INSTALLDIR}/www/phpinfo.php ${INSTALLDIR}/www/index.php
 		fi 
+		echo "... Mapserver installed."
 	fi
 }
 
@@ -257,7 +264,7 @@ if [ ! -n "$PHPDIR" ] || [ ! -n "$GDALDIR" ] || [ ! -n "$MAPSERVERDIR" ] ; then
 					eval url=\$`echo ${arch}URL`
 					getsources "$url"
 				else 
-					exiterr "Please put gz into src directory, or launch installer again"
+					exiterr "Please put gz into src directory, or launch installer again."
 				fi
 			fi
 		done
