@@ -1,21 +1,39 @@
-------------------------------------------------------------------
-$Id: README,v 1.3 2002/10/31 14:05:51 mose Exp $
+$Id: README,v 1.4 2002/10/31 21:53:06 mose Exp $
 Copyright (C) 2002 Makina Corpus, http://makina-corpus.org
 Created and maintained by mastre <mastre@makina-corpus.org>
 Released under GPL version 2 or later, see LICENSE file
 or http://www.gnu.org/copyleft/gpl.html
 ------------------------------------------------------------------
 
-EasyMapServer is a shell script that gets sources of PHP4, GDAL 
-and MapServer. Then it compiles it to produce a php executable
-for use with apache configuration in misc/apache.conf.
-Compilation also produces a file named php_mapscript.so
-that will be used by that php application.
+EasyMapServer
+==============
 
-Please edit easymapserver.sh and change values if needed 
-and then execute it ! (no mercy)
+EasyMapServer is an installer script for Mapserver, to be used with
+Localis (http://localis.org). 
 
-version 0.2 uses:
+Written in plain shell, its main actions are :
+- use wget to download the sources in src/directory
+- compile gdal, php4 and mapserver with correct options
+
+
+Pre-requisite
+==============
+
+- Linux computer (but works on windows too)
+
+- a MySQL server (mysqld from mysql-server)
+
+- libpng2 (debian package has same name)
+
+- GD library 1.2 (libgd1 libgd-dev)
+
+- Jpeg library _optional_ (libjpeg62-dev)
+
+- Freetype library 2 (libfreetype6-dev)
+
+
+Content of EasyMapServer install
+=================================
 
 - PHP v4.2.3
 	from http://fr.php.net
@@ -27,4 +45,29 @@ version 0.2 uses:
   from http://remotesensing.org
 
 
-See INSTALL file for more information
+Executing EasyMapServer : installation process
+================================================
+
+** YOU MUST BE ROOT TO PERFORM THIS INSTALLATION **
+
+Please edit easymapserver.sh and change values if needed
+and then execute it ! (no mercy)
+
+    ./easymapserver.sh
+
+
+You need to activate mod_action in apache. 
+Uncomment this line into your apache configuration file (httpd.conf):
+
+    #LoadModule action_module /usr/lib/apache/1.3/mod_actions.so
+
+
+Add this line into your http.conf:
+
+    Include your_install_dir/conf/mapserv.conf
+
+
+License
+========
+
+see LICENSE file
