@@ -1,5 +1,5 @@
 #!/bin/sh
-# $Id: easymapserver.sh,v 1.7 2003/06/12 12:21:24 terraces Exp $
+# $Id: easymapserver.sh,v 1.8 2003/06/12 12:58:21 terraces Exp $
 # Copyright (C) 2002, Makina Corpus, http://makina-corpus.org
 # This file is a component of Localis <http://localis.org>
 # Created by mose@makina-corpus.org and mastre@makina-corpus.org
@@ -186,6 +186,7 @@ install() {
 		if [ ! -h "$INSTALLDIR/lib/php/extensions/no-debug-non-zts-20020429" ]; then 
 			$LN /usr/lib/php/extensions/no-debug-non-zts-20020429 "$INSTALLDIR/lib/php/extensions"
 		fi
+		echo "extension_dir = $INSTALLDIR/www" >> $INSTALLDIR/conf/php.ini
 		echo "... PHP4 installed."
 	fi
 	echo -n "Do you want to (re)install mapserver ? [Y/n] "
